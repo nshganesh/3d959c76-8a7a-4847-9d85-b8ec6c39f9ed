@@ -90,8 +90,11 @@ export const useDeviceStore = defineStore('device', () => {
     try {
       loading.value = true
       error.value = null
+      console.log('Fetching devices...')
       const response = await deviceApi.getDevices()
+      console.log('API response:', response)
       devices.value = response.data.devices
+      console.log('Devices set:', devices.value)
       
       // Auto-select first device if none selected
       if (!selectedDeviceId.value && devices.value.length > 0) {

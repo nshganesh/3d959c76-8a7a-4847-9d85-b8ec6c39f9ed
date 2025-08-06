@@ -200,6 +200,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
+import { storeToRefs } from 'pinia'
 import { use } from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { BarChart } from 'echarts/charts'
@@ -229,7 +230,7 @@ const deviceStore = useDeviceStore()
 const startDateInput = ref('')
 const endDateInput = ref('')
 
-// Computed properties
+// Computed properties - use storeToRefs for reactivity
 const {
   hasDevices,
   loading,
@@ -239,7 +240,7 @@ const {
   totalDiesel,
   monthlyCarbon,
   monthlyDiesel
-} = deviceStore
+} = storeToRefs(deviceStore)
 
 const chartOption = computed(() => ({
   tooltip: {
@@ -357,7 +358,10 @@ const clearError = () => {
 
 // Lifecycle
 onMounted(async () => {
+  console.log('Dashboard mounted, fetching devices...')
   await deviceStore.fetchDevices()
+  console.log('Devices fetched:', deviceStore.devices)
+  console.log('Has devices:', deviceStore.hasDevices)
   
   // Set default date range to match the actual data (2023)
   const startDate = new Date('2023-01-01T00:00:00.000Z')
