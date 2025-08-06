@@ -7,14 +7,11 @@
           <h1 class="text-2xl font-bold text-primary">
             Estimated carbon savings and diesel savings
           </h1>
-          <button class="btn btn-outline">
-            <span>×</span>
-          </button>
         </div>
         <div class="mt-2">
-          <a href="#" class="text-sm text-primary-green hover:underline">
+          <div class="text-sm surface">
             Download general guidelines on the estimated carbon & diesel savings calculations.
-          </a>
+          </div>
         </div>
       </div>
     </header>
