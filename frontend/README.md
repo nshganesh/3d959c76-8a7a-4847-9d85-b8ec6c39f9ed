@@ -43,7 +43,7 @@ A beautiful Vue.js dashboard for visualizing Ampd Energy device savings data wit
    npm run dev
    ```
 
-The application will be available at `http://localhost:3001`
+The application will be available at `http://localhost:3002`
 
 ## Build for Production
 

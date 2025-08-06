@@ -1,0 +1,184 @@
+const fs = require('fs');
+const path = require('path');
+const csv = require('csv-parser');
+
+class CSVLoader {
+  constructor() {
+    this.deviceSavingsData = [];
+    this.devicesData = [];
+    this.isLoaded = false;
+  }
+
+  /**
+   * Load device savings data from CSV file
+   */
+  async loadDeviceSavingsData() {
+    return new Promise((resolve, reject) => {
+      const csvPath = path.join(__dirname, '../../device-saving.csv');
+      
+      if (!fs.existsSync(csvPath)) {
+        reject(new Error('device-saving.csv file not found'));
+        return;
+      }
+
+      const results = [];
+      
+      fs.createReadStream(csvPath)
+        .pipe(csv())
+        .on('data', (data) => {
+          // Parse and validate the data
+          const parsedData = {
+            device_id: parseInt(data.device_id),
+            timestamp: new Date(data.timestamp),
+            device_timestamp: new Date(data.device_timestamp),
+            carbon_saved: parseFloat(data.carbon_saved),
+            fuel_saved: parseFloat(data.fueld_saved) // Note: CSV has typo 'fueld_saved'
+          };
+
+          // Validate that all required fields are present and valid
+          if (this.isValidData(parsedData)) {
+            results.push(parsedData);
+          }
+        })
+        .on('end', () => {
+          this.deviceSavingsData = results;
+          this.isLoaded = true;
+          console.log(`✅ Loaded ${results.length} device savings records`);
+          resolve(results);
+        })
+        .on('error', (error) => {
+          console.error('❌ Error loading device savings CSV:', error);
+          reject(error);
+        });
+    });
+  }
+
+  /**
+   * Load devices data from CSV file (if exists)
+   */
+  async loadDevicesData() {
+    return new Promise((resolve, reject) => {
+      const csvPath = path.join(__dirname, '../../devices.csv');
+      
+      if (!fs.existsSync(csvPath)) {
+        console.log('⚠️  devices.csv file not found, skipping...');
+        resolve([]);
+        return;
+      }
+
+      const results = [];
+      
+      fs.createReadStream(csvPath)
+        .pipe(csv())
+        .on('data', (data) => {
+          results.push(data);
+        })
+        .on('end', () => {
+          this.devicesData = results;
+          console.log(`✅ Loaded ${results.length} device records`);
+          resolve(results);
+        })
+        .on('error', (error) => {
+          console.error('❌ Error loading devices CSV:', error);
+          reject(error);
+        });
+    });
+  }
+
+  /**
+   * Load all CSV data
+   */
+  async loadAllData() {
+    try {
+      await Promise.all([
+        this.loadDeviceSavingsData(),
+        this.loadDevicesData()
+      ]);
+      return {
+        deviceSavings: this.deviceSavingsData,
+        devices: this.devicesData
+      };
+    } catch (error) {
+      console.error('❌ Error loading CSV data:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Validate parsed data
+   */
+  isValidData(data) {
+    return (
+      data.device_id &&
+      !isNaN(data.device_id) &&
+      data.timestamp instanceof Date &&
+      !isNaN(data.timestamp.getTime()) &&
+      data.device_timestamp instanceof Date &&
+      !isNaN(data.device_timestamp.getTime()) &&
+      !isNaN(data.carbon_saved) &&
+      !isNaN(data.fuel_saved)
+    );
+  }
+
+  /**
+   * Get all device savings data
+   */
+  getDeviceSavingsData() {
+    if (!this.isLoaded) {
+      throw new Error('Data not loaded yet. Call loadAllData() first.');
+    }
+    return this.deviceSavingsData;
+  }
+
+  /**
+   * Get all devices data
+   */
+  getDevicesData() {
+    return this.devicesData;
+  }
+
+  /**
+   * Get unique device IDs
+   */
+  getUniqueDeviceIds() {
+    if (!this.isLoaded) {
+      throw new Error('Data not loaded yet. Call loadAllData() first.');
+    }
+    const uniqueIds = [...new Set(this.deviceSavingsData.map(record => record.device_id))];
+    return uniqueIds.sort((a, b) => a - b);
+  }
+
+  /**
+   * Get data for a specific device
+   */
+  getDeviceData(deviceId) {
+    if (!this.isLoaded) {
+      throw new Error('Data not loaded yet. Call loadAllData() first.');
+    }
+    return this.deviceSavingsData.filter(record => record.device_id === parseInt(deviceId));
+  }
+
+  /**
+   * Get data for a specific device within a date range
+   */
+  getDeviceDataInRange(deviceId, startDate, endDate) {
+    if (!this.isLoaded) {
+      throw new Error('Data not loaded yet. Call loadAllData() first.');
+    }
+    
+    const deviceData = this.getDeviceData(deviceId);
+    const start = startDate ? new Date(startDate) : null;
+    const end = endDate ? new Date(endDate) : null;
+
+    return deviceData.filter(record => {
+      const recordDate = record.timestamp;
+      
+      if (start && recordDate < start) return false;
+      if (end && recordDate > end) return false;
+      
+      return true;
+    });
+  }
+}
+
+module.exports = new CSVLoader(); 
