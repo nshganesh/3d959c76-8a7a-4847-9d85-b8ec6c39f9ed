@@ -121,22 +121,22 @@
               </div>
               <div class="flex gap-2">
                 <button 
-                  @click="setQuickDateRange(30)"
+                  @click="setQuickDateRange('2023-01-01', '2023-03-31')"
                   class="btn btn-outline"
                 >
-                  Last 30 days
+                  Q1 2023
                 </button>
                 <button 
-                  @click="setQuickDateRange(60)"
+                  @click="setQuickDateRange('2023-04-01', '2023-06-30')"
                   class="btn btn-outline"
                 >
-                  Last 60 days
+                  Q2 2023
                 </button>
                 <button 
-                  @click="setQuickDateRange(365)"
+                  @click="setQuickDateRange('2023-07-01', '2023-12-31')"
                   class="btn btn-outline"
                 >
-                  Last year
+                  Q3-Q4 2023
                 </button>
               </div>
             </div>
@@ -331,10 +331,9 @@ const formatDiesel = (value: number): string => {
   return value.toFixed(1)
 }
 
-const setQuickDateRange = (days: number) => {
-  const endDate = new Date()
-  const startDate = new Date()
-  startDate.setDate(startDate.getDate() - days)
+const setQuickDateRange = (startDateStr: string, endDateStr: string) => {
+  const startDate = new Date(startDateStr + 'T00:00:00.000Z')
+  const endDate = new Date(endDateStr + 'T23:59:59.999Z')
   
   startDateInput.value = startDate.toISOString().slice(0, 16)
   endDateInput.value = endDate.toISOString().slice(0, 16)
@@ -360,10 +359,9 @@ const clearError = () => {
 onMounted(async () => {
   await deviceStore.fetchDevices()
   
-  // Set default date range to last year
-  const endDate = new Date()
-  const startDate = new Date()
-  startDate.setFullYear(startDate.getFullYear() - 1)
+  // Set default date range to match the actual data (2023)
+  const startDate = new Date('2023-01-01T00:00:00.000Z')
+  const endDate = new Date('2023-12-31T23:59:59.999Z')
   
   startDateInput.value = startDate.toISOString().slice(0, 16)
   endDateInput.value = endDate.toISOString().slice(0, 16)
