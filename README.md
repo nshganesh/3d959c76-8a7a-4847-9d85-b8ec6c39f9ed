@@ -67,7 +67,8 @@ Frontend will be available at `http://localhost:3002`
 
 ### Devices
 - `GET /api/devices` - Get all unique device IDs
-- `GET /api/devices/:deviceId/savings` - Get device savings with optional date filtering
+- `GET /api/devices/:deviceId/monthly` - Get aggregated monthly data for charts
+- `GET /api/devices/:deviceId/hourly` - Get aggregated hourly data for 1-day zoom level
 - `GET /api/devices/:deviceId/summary` - Get device summary statistics
 
 ### Query Parameters
@@ -81,8 +82,11 @@ Frontend will be available at `http://localhost:3002`
 # Get all devices
 curl http://localhost:3000/api/devices
 
-# Get device savings for last 30 days
-curl "http://localhost:3000/api/devices/1/savings?startDate=2024-01-01T00:00:00.000Z&endDate=2024-01-31T23:59:59.999Z"
+# Get monthly aggregated data for device 1
+curl "http://localhost:3000/api/devices/1/monthly?startDate=2024-01-01T00:00:00.000Z&endDate=2024-01-31T23:59:59.999Z"
+
+# Get hourly aggregated data for 1-day zoom level
+curl "http://localhost:3000/api/devices/1/hourly?startDate=2024-01-01T00:00:00.000Z&endDate=2024-01-01T23:59:59.999Z"
 
 # Get device summary
 curl http://localhost:3000/api/devices/1/summary
