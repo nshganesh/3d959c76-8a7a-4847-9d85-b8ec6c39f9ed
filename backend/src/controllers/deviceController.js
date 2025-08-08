@@ -44,6 +44,9 @@ const getDeviceMonthlyData = (req, res) => {
       });
     }
 
+    // Get device timezone
+    const deviceTimezone = csvLoader.getDeviceTimezone(deviceId);
+    
     // Get device data with optional date filtering
     const deviceData = csvLoader.getDeviceDataInRange(deviceId, startDate, endDate);
     
@@ -52,6 +55,7 @@ const getDeviceMonthlyData = (req, res) => {
         success: true,
         data: {
           device_id: deviceId,
+          device_timezone: deviceTimezone,
           monthly_data: [],
           summary: {
             total_carbon_saved: 0,
@@ -65,14 +69,13 @@ const getDeviceMonthlyData = (req, res) => {
       });
     }
 
-    // Aggregate data by month
     const monthlyData = new Map();
     
     deviceData.forEach(record => {
-      const date = new Date(record.timestamp);
-      const monthKey = date.toLocaleDateString('en-US', { 
+      const deviceDate = new Date(record.device_timestamp);
+      const monthKey = deviceDate.toLocaleDateString('en-US', { 
         month: 'short', 
-        year: 'numeric' 
+        year: 'numeric'
       });
 
       if (!monthlyData.has(monthKey)) {
@@ -110,6 +113,7 @@ const getDeviceMonthlyData = (req, res) => {
       success: true,
       data: {
         device_id: deviceId,
+        device_timezone: deviceTimezone,
         monthly_data: monthlyArray,
         summary: {
           total_carbon_saved: parseFloat(totalCarbonSaved.toFixed(6)),
@@ -119,7 +123,7 @@ const getDeviceMonthlyData = (req, res) => {
           record_count: deviceData.length
         }
       },
-      message: `Aggregated data for ${monthlyArray.length} months from ${deviceData.length} records`
+      message: `Aggregated data for ${monthlyArray.length} months from ${deviceData.length} records (Device timezone: ${deviceTimezone || 'UTC'})`
     });
   } catch (error) {
     console.error('Error getting device monthly data:', error);

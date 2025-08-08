@@ -32,7 +32,7 @@ class CSVLoader {
             timestamp: new Date(data.timestamp),
             device_timestamp: new Date(data.device_timestamp),
             carbon_saved: parseFloat(data.carbon_saved),
-            fuel_saved: parseFloat(data.fueld_saved) // Note: CSV has typo 'fueld_saved'
+            fuel_saved: parseFloat(data.fueld_saved)
           };
 
           // Validate that all required fields are present and valid
@@ -190,13 +190,25 @@ class CSVLoader {
     const end = endDate ? new Date(endDate) : null;
 
     return deviceData.filter(record => {
-      const recordDate = record.timestamp;
+      const recordDate = record.device_timestamp;
       
       if (start && recordDate < start) return false;
       if (end && recordDate > end) return false;
       
       return true;
     });
+  }
+
+  /**
+   * Get device timezone
+   */
+  getDeviceTimezone(deviceId) {
+    if (!this.isLoaded) {
+      throw new Error('Data not loaded yet. Call loadAllData() first.');
+    }
+    
+    const device = this.devicesData.find(d => parseInt(d.id) === parseInt(deviceId));
+    return device ? device.timezone : null;
   }
 }
 

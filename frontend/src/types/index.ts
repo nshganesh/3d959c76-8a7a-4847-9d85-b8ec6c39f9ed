@@ -75,6 +75,7 @@ export interface DeviceMonthlyDataResponse {
   success: boolean
   data: {
     device_id: number
+    device_timezone: string | null
     monthly_data: ChartDataPoint[]
     summary: {
       total_carbon_saved: number
