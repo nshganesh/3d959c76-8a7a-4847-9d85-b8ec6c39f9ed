@@ -33,7 +33,6 @@ Coding Challenge_Ampd/
 - **Date Range Selection** with quick presets
 - **Responsive Design** for all devices
 - **TypeScript** for type safety
-- **Modern UI** with smooth animations
 - **State Management** with Pinia
 
 ## 🚀 Quick Start
@@ -44,7 +43,7 @@ Coding Challenge_Ampd/
 
 ### 1. Clone and Setup
 ```bash
-git clone <repository-url>
+git clone https://github.com/nshganesh/3d959c76-8a7a-4847-9d85-b8ec6c39f9ed.git
 cd Coding Challenge_Ampd
 ```
 
@@ -153,7 +152,6 @@ frontend/
 │   └── style.css       # Global styles
 ├── index.html          # HTML template
 ├── package.json        # Dependencies and scripts
-└── README.md           # Frontend documentation
 ```
 
 ## 🔧 Development
@@ -170,31 +168,13 @@ npm start           # Start production server
 cd frontend
 npm run dev         # Start development server
 npm run build       # Build for production
-npm run preview     # Preview production build
-npm run type-check  # TypeScript type checking
 ```
-
-## 📈 Data Processing
-
-The application processes CSV data with the following structure:
-- **device-saving.csv** - 175,210+ records with device savings data
-- **devices.csv** - 10 device records
-
-### Data Fields
-- `device_id` - Unique device identifier
-- `timestamp` - Record timestamp
-- `device_timestamp` - Device-specific timestamp
-- `carbon_saved` - Carbon savings in kg
-- `fuel_saved` - Fuel savings in liters
 
 ## 🎯 UI/UX Design
 
 The frontend closely matches the provided mockup with:
 - **Clean, modern design** with green and blue color scheme
 - **Responsive layout** that works on all devices
-- **Interactive elements** with hover states and animations
-- **Professional typography** using Inter font
-- **Accessible design** with proper contrast and focus states
 
 ## 🔒 Security Features
 
@@ -202,7 +182,6 @@ The frontend closely matches the provided mockup with:
 - **CORS configuration** for cross-origin requests
 - **Security headers** with helmet middleware
 - **Error handling** with proper HTTP status codes
-- **Request logging** for monitoring and debugging
 
 ## 🚀 Deployment
 
@@ -219,50 +198,3 @@ cd frontend
 npm run build
 # Serve dist/ folder with your web server
 ```
-
-## 📝 API Documentation
-
-### Response Format
-All API responses follow this structure:
-```json
-{
-  "success": true,
-  "data": { ... },
-  "message": "Success message"
-}
-```
-
-### Error Response
-```json
-{
-  "success": false,
-  "error": "Error type",
-  "message": "Detailed error message"
-}
-```
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-## 📄 License
-
-This project is part of the Ampd Energy coding challenge.
-
-## 🎉 Success!
-
-The application successfully demonstrates:
-- ✅ Complete full-stack implementation
-- ✅ Beautiful, responsive UI matching the mockup
-- ✅ Interactive charts with ECharts.js
-- ✅ Real-time data filtering and visualization
-- ✅ Professional code structure and best practices
-- ✅ TypeScript for type safety
-- ✅ Comprehensive error handling
-- ✅ Modern development workflow
-
-Both the backend API and frontend dashboard are now running and ready for use! 

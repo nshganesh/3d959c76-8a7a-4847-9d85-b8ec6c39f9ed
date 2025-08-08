@@ -4,16 +4,19 @@ import { deviceApi } from '@/utils/api'
 import type { 
   DeviceSavingsRecord, 
   DeviceSummaryResponse,
+  DeviceMonthlyDataResponse,
+  Device,
   DateRange,
   ChartDataPoint 
 } from '@/types'
 
 export const useDeviceStore = defineStore('device', () => {
   // State
-  const devices = ref<Array<{ id: number }>>([])
+  const devices = ref<Device[]>([])
   const selectedDeviceId = ref<number | null>(null)
   const deviceSavings = ref<DeviceSavingsRecord[]>([])
   const deviceSummary = ref<DeviceSummaryResponse['data']['summary'] | null>(null)
+  const monthlyData = ref<ChartDataPoint[]>([])
   const dateRange = ref<DateRange>({
     startDate: null,
     endDate: null
@@ -28,62 +31,24 @@ export const useDeviceStore = defineStore('device', () => {
   )
 
   const chartData = computed((): ChartDataPoint[] => {
-    if (!deviceSavings.value.length) return []
-
-    const monthlyData = new Map<string, { carbon: number; diesel: number }>()
-
-    deviceSavings.value.forEach(record => {
-      const date = new Date(record.timestamp)
-      const monthKey = date.toLocaleDateString('en-US', { 
-        month: 'short', 
-        year: 'numeric' 
-      })
-
-      if (!monthlyData.has(monthKey)) {
-        monthlyData.set(monthKey, { carbon: 0, diesel: 0 })
-      }
-
-      const monthData = monthlyData.get(monthKey)!
-      monthData.carbon += record.carbon_saved
-      monthData.diesel += record.fuel_saved
-    })
-
-    return Array.from(monthlyData.entries())
-      .map(([month, data]) => ({
-        month,
-        carbon: parseFloat(data.carbon.toFixed(2)),
-        diesel: parseFloat(data.diesel.toFixed(2))
-      }))
-      .sort((a, b) => new Date(a.month).getTime() - new Date(b.month).getTime())
+    return monthlyData.value
   })
 
   const totalCarbon = computed(() => 
-    deviceSavings.value.reduce((sum, record) => sum + record.carbon_saved, 0)
+    deviceSummary.value?.total_carbon_saved || 0
   )
 
   const totalDiesel = computed(() => 
-    deviceSavings.value.reduce((sum, record) => sum + record.fuel_saved, 0)
+    deviceSummary.value?.total_fuel_saved || 0
   )
 
-  const monthlyCarbon = computed(() => {
-    if (!deviceSavings.value.length) return 0
-    const months = new Set(
-      deviceSavings.value.map(r => 
-        new Date(r.timestamp).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
-      )
-    ).size
-    return totalCarbon.value / months
-  })
+  const monthlyCarbon = computed(() => 
+    deviceSummary.value?.average_carbon_saved || 0
+  )
 
-  const monthlyDiesel = computed(() => {
-    if (!deviceSavings.value.length) return 0
-    const months = new Set(
-      deviceSavings.value.map(r => 
-        new Date(r.timestamp).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
-      )
-    ).size
-    return totalDiesel.value / months
-  })
+  const monthlyDiesel = computed(() => 
+    deviceSummary.value?.average_fuel_saved || 0
+  )
 
   // Actions
   const fetchDevices = async () => {
@@ -108,6 +73,32 @@ export const useDeviceStore = defineStore('device', () => {
     }
   }
 
+  const fetchDeviceMonthlyData = async (deviceId: number, params?: {
+    startDate?: string
+    endDate?: string
+  }) => {
+    try {
+      loading.value = true
+      error.value = null
+      
+      const response = await deviceApi.getDeviceMonthlyData(deviceId, params)
+      monthlyData.value = response.data.monthly_data
+      // Convert the monthly summary to match the device summary format
+      deviceSummary.value = {
+        ...response.data.summary,
+        date_range: {
+          start: '',
+          end: ''
+        }
+      }
+    } catch (err) {
+      error.value = 'Failed to fetch device monthly data'
+      console.error('Error fetching device monthly data:', err)
+    } finally {
+      loading.value = false
+    }
+  }
+
   const fetchDeviceSavings = async (deviceId: number, params?: {
     startDate?: string
     endDate?: string
@@ -117,8 +108,37 @@ export const useDeviceStore = defineStore('device', () => {
     try {
       loading.value = true
       error.value = null
-      const response = await deviceApi.getDeviceSavings(deviceId, params)
-      deviceSavings.value = response.data.records
+      
+      // If no limit specified, fetch all data using pagination
+      if (!params?.limit) {
+        const allRecords: any[] = []
+        let offset = 0
+        const limit = 1000 // Maximum allowed by backend
+        
+        while (true) {
+          const response = await deviceApi.getDeviceSavings(deviceId, {
+            ...params,
+            limit,
+            offset
+          })
+          
+          const records = response.data.records
+          allRecords.push(...records)
+          
+          // If we got fewer records than the limit, we've reached the end
+          if (records.length < limit) {
+            break
+          }
+          
+          offset += limit
+        }
+        
+        deviceSavings.value = allRecords
+      } else {
+        // Use the provided limit (for backward compatibility)
+        const response = await deviceApi.getDeviceSavings(deviceId, params)
+        deviceSavings.value = response.data.records
+      }
     } catch (err) {
       error.value = 'Failed to fetch device savings'
       console.error('Error fetching device savings:', err)
@@ -143,34 +163,20 @@ export const useDeviceStore = defineStore('device', () => {
 
   const selectDevice = async (deviceId: number) => {
     selectedDeviceId.value = deviceId
-    await Promise.all([
-      fetchDeviceSavings(deviceId, {
-        startDate: dateRange.value.startDate?.toISOString(),
-        endDate: dateRange.value.endDate?.toISOString(),
-        limit: 1000 // Get more data for chart
-      }),
-      fetchDeviceSummary(deviceId, {
-        startDate: dateRange.value.startDate?.toISOString(),
-        endDate: dateRange.value.endDate?.toISOString()
-      })
-    ])
+    await fetchDeviceMonthlyData(deviceId, {
+      startDate: dateRange.value.startDate?.toISOString(),
+      endDate: dateRange.value.endDate?.toISOString()
+    })
   }
 
   const updateDateRange = async (newDateRange: DateRange) => {
     dateRange.value = newDateRange
     
     if (selectedDeviceId.value) {
-      await Promise.all([
-        fetchDeviceSavings(selectedDeviceId.value, {
-          startDate: newDateRange.startDate?.toISOString(),
-          endDate: newDateRange.endDate?.toISOString(),
-          limit: 1000
-        }),
-        fetchDeviceSummary(selectedDeviceId.value, {
-          startDate: newDateRange.startDate?.toISOString(),
-          endDate: newDateRange.endDate?.toISOString()
-        })
-      ])
+      await fetchDeviceMonthlyData(selectedDeviceId.value, {
+        startDate: newDateRange.startDate?.toISOString(),
+        endDate: newDateRange.endDate?.toISOString()
+      })
     }
   }
 
@@ -200,6 +206,7 @@ export const useDeviceStore = defineStore('device', () => {
     // Actions
     fetchDevices,
     fetchDeviceSavings,
+    fetchDeviceMonthlyData,
     fetchDeviceSummary,
     selectDevice,
     updateDateRange,

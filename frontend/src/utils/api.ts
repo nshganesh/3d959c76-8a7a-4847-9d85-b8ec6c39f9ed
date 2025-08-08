@@ -2,7 +2,8 @@ import axios from 'axios'
 import type { 
   DeviceSavingsResponse, 
   DeviceSummaryResponse, 
-  DevicesResponse 
+  DevicesResponse,
+  DeviceMonthlyDataResponse
 } from '@/types'
 
 const api = axios.create({
@@ -53,6 +54,18 @@ export const deviceApi = {
     }
   ): Promise<DeviceSavingsResponse> {
     const response = await api.get(`/devices/${deviceId}/savings`, { params })
+    return response.data
+  },
+
+  // Get aggregated monthly data for charts
+  async getDeviceMonthlyData(
+    deviceId: number,
+    params?: {
+      startDate?: string
+      endDate?: string
+    }
+  ): Promise<DeviceMonthlyDataResponse> {
+    const response = await api.get(`/devices/${deviceId}/monthly`, { params })
     return response.data
   },
 

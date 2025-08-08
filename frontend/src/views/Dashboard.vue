@@ -4,9 +4,14 @@
     <header class="header">
       <div class="container">
         <div class="flex items-center justify-between">
-          <h1 class="text-2xl font-bold text-primary">
-            Estimated carbon savings and diesel savings
-          </h1>
+          <div>
+            <h1 class="text-2xl font-bold text-primary">
+              Estimated carbon savings and diesel savings
+            </h1>
+            <div v-if="selectedDevice" class="text-sm text-white/80 mt-1">
+              Selected: {{ selectedDevice.name }}
+            </div>
+          </div>
         </div>
         <div class="mt-2">
           <div class="text-sm surface">
@@ -36,6 +41,31 @@
 
         <!-- Dashboard Content -->
         <div v-else-if="hasDevices" class="dashboard-content">
+          <!-- Device Selection Section -->
+          <section class="device-selection-section">
+            <div class="card">
+              <h3 class="text-lg font-semibold mb-4">Select Device</h3>
+              <div class="max-w-xs w-full">
+                <select
+                  v-model="selectedDeviceId"
+                  @change="selectDevice(selectedDeviceId)"
+                  class="select"
+                  :disabled="loading"
+                >
+                  <option v-if="loading" value="" disabled>Loading devices...</option>
+                  <option
+                    v-else
+                    v-for="device in devices"
+                    :key="device.id"
+                    :value="device.id"
+                  >
+                    {{ device.name }}
+                  </option>
+                </select>
+              </div>
+            </div>
+          </section>
+
           <!-- Key Metrics Section -->
           <section class="metrics-section">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -236,7 +266,9 @@ const {
   totalCarbon,
   totalDiesel,
   monthlyCarbon,
-  monthlyDiesel
+  monthlyDiesel,
+  devices,
+  selectedDeviceId
 } = storeToRefs(deviceStore)
 
 const chartOption = computed(() => ({
@@ -349,16 +381,19 @@ const updateDateRange = () => {
   deviceStore.updateDateRange({ startDate, endDate })
 }
 
+const selectDevice = async (deviceId: number) => {
+  if (deviceId) {
+    await deviceStore.selectDevice(deviceId)
+  }
+}
+
 const clearError = () => {
   deviceStore.clearError()
 }
 
 // Lifecycle
 onMounted(async () => {
-  console.log('Dashboard mounted, fetching devices...')
   await deviceStore.fetchDevices()
-  console.log('Devices fetched:', deviceStore.devices)
-  console.log('Has devices:', deviceStore.hasDevices)
   
   // Set default date range to match the actual data (2023)
   const startDate = new Date('2023-01-01T00:00:00.000Z')
@@ -367,7 +402,13 @@ onMounted(async () => {
   startDateInput.value = startDate.toISOString().slice(0, 16)
   endDateInput.value = endDate.toISOString().slice(0, 16)
   
+  // Update date range first, then select device to fetch data with the correct range
   deviceStore.updateDateRange({ startDate, endDate })
+  
+  // Ensure we have a selected device and fetch its data
+  if (deviceStore.selectedDeviceId) {
+    await deviceStore.selectDevice(deviceStore.selectedDeviceId)
+  }
 })
 </script>
 
@@ -434,6 +475,16 @@ onMounted(async () => {
   background: var(--surface);
   border-radius: var(--radius);
   border: 1px solid var(--border-light);
+}
+
+.device-selection-section .select {
+  text-transform: capitalize;
+}
+
+@media (max-width: 768px) {
+  .device-selection-section .max-w-xs {
+    max-width: 100%;
+  }
 }
 
 @media (max-width: 768px) {

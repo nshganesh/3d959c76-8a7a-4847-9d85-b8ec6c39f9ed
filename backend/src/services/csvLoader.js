@@ -149,6 +149,35 @@ class CSVLoader {
   }
 
   /**
+   * Get devices with their names
+   */
+  getDevicesWithNames() {
+    if (!this.isLoaded) {
+      throw new Error('Data not loaded yet. Call loadAllData() first.');
+    }
+    
+    const uniqueIds = this.getUniqueDeviceIds();
+    const deviceMap = new Map();
+    
+    // Create a map of device ID to device data from devices.csv
+    if (this.devicesData && this.devicesData.length > 0) {
+      this.devicesData.forEach(device => {
+        deviceMap.set(parseInt(device.id), {
+          id: parseInt(device.id),
+          name: device.name,
+          timezone: device.timezone
+        });
+      });
+    }
+    
+    // Return devices with names, fallback to just ID if name not found
+    return uniqueIds.map(id => {
+      const deviceData = deviceMap.get(id);
+      return deviceData || { id, name: `Device ${id}`, timezone: null };
+    });
+  }
+
+  /**
    * Get data for a specific device
    */
   getDeviceData(deviceId) {

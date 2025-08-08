@@ -1,5 +1,5 @@
 const express = require('express');
-const { getDevices, getDeviceSavings, getDeviceSummary } = require('../controllers/deviceController');
+const { getDevices, getDeviceMonthlyData, getDeviceSavings, getDeviceSummary } = require('../controllers/deviceController');
 const { validateDeviceId, validateDateRange, validatePagination } = require('../middleware/validation');
 
 const router = express.Router();
@@ -21,6 +21,15 @@ router.get('/', getDevices);
  * @query   offset - Number of records to skip (default: 0)
  */
 router.get('/:deviceId/savings', validateDeviceId, validateDateRange, validatePagination, getDeviceSavings);
+
+/**
+ * @route   GET /api/devices/:deviceId/monthly
+ * @desc    Get aggregated monthly data for charts with optional date range filtering
+ * @access  Public
+ * @query   startDate - Start date for filtering (ISO string)
+ * @query   endDate - End date for filtering (ISO string)
+ */
+router.get('/:deviceId/monthly', validateDeviceId, validateDateRange, getDeviceMonthlyData);
 
 /**
  * @route   GET /api/devices/:deviceId/summary
