@@ -1,5 +1,5 @@
 const express = require('express');
-const { getDevices, getDeviceMonthlyData, getDeviceSummary } = require('../controllers/deviceController');
+const { getDevices, getDeviceMonthlyData, getDeviceSummary, getDeviceHourlyData } = require('../controllers/deviceController');
 const { validateDeviceId, validateDateRange } = require('../middleware/validation');
 
 const router = express.Router();
@@ -28,5 +28,14 @@ router.get('/:deviceId/monthly', validateDeviceId, validateDateRange, getDeviceM
  * @query   endDate - End date for filtering (ISO string)
  */
 router.get('/:deviceId/summary', validateDeviceId, validateDateRange, getDeviceSummary);
+
+/**
+ * @route   GET /api/devices/:deviceId/hourly
+ * @desc    Get aggregated hourly data for 1-day zoom level with optional date range filtering
+ * @access  Public
+ * @query   startDate - Start date for filtering (ISO string)
+ * @query   endDate - End date for filtering (ISO string)
+ */
+router.get('/:deviceId/hourly', validateDeviceId, validateDateRange, getDeviceHourlyData);
 
 module.exports = router; 
