@@ -132,66 +132,6 @@ const getDeviceMonthlyData = (req, res) => {
 };
 
 /**
- * Get device savings data with optional date range filtering
- */
-const getDeviceSavings = (req, res) => {
-  try {
-    const deviceId = req.deviceId; // Already validated by middleware
-    const startDate = req.startDate; // Already validated by middleware
-    const endDate = req.endDate; // Already validated by middleware
-    const limit = req.limit; // Already validated by middleware
-    const offset = req.offset; // Already validated by middleware
-
-    // Check if device exists
-    const allDeviceIds = csvLoader.getUniqueDeviceIds();
-    if (!allDeviceIds.includes(deviceId)) {
-      return res.status(404).json({
-        success: false,
-        error: 'Device not found',
-        message: `Device with ID ${deviceId} does not exist`
-      });
-    }
-
-    // Get device data with optional date filtering
-    let deviceData = csvLoader.getDeviceDataInRange(deviceId, startDate, endDate);
-    
-    // Sort by timestamp
-    deviceData.sort((a, b) => a.timestamp - b.timestamp);
-
-    // Apply pagination
-    const totalCount = deviceData.length;
-    const paginatedData = deviceData.slice(offset, offset + limit);
-
-    res.json({
-      success: true,
-      data: {
-        device_id: deviceId,
-        records: paginatedData,
-        count: paginatedData.length,
-        total_count: totalCount,
-        pagination: {
-          limit,
-          offset,
-          has_more: offset + limit < totalCount
-        },
-        date_range: {
-          start_date: startDate ? startDate.toISOString() : null,
-          end_date: endDate ? endDate.toISOString() : null
-        }
-      },
-      message: `Retrieved ${paginatedData.length} records for device ${deviceId} (${totalCount} total)`
-    });
-  } catch (error) {
-    console.error('Error getting device savings:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to retrieve device savings',
-      message: error.message
-    });
-  }
-};
-
-/**
  * Get device summary statistics
  */
 const getDeviceSummary = (req, res) => {
@@ -276,6 +216,5 @@ const getDeviceSummary = (req, res) => {
 module.exports = {
   getDevices,
   getDeviceMonthlyData,
-  getDeviceSavings,
   getDeviceSummary
 }; 

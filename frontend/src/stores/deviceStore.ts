@@ -2,7 +2,6 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { deviceApi } from '@/utils/api'
 import type { 
-  DeviceSavingsRecord, 
   DeviceSummaryResponse,
   DeviceMonthlyDataResponse,
   Device,
@@ -14,7 +13,6 @@ export const useDeviceStore = defineStore('device', () => {
   // State
   const devices = ref<Device[]>([])
   const selectedDeviceId = ref<number | null>(null)
-  const deviceSavings = ref<DeviceSavingsRecord[]>([])
   const deviceSummary = ref<DeviceSummaryResponse['data']['summary'] | null>(null)
   const monthlyData = ref<ChartDataPoint[]>([])
   const dateRange = ref<DateRange>({
@@ -99,67 +97,9 @@ export const useDeviceStore = defineStore('device', () => {
     }
   }
 
-  const fetchDeviceSavings = async (deviceId: number, params?: {
-    startDate?: string
-    endDate?: string
-    limit?: number
-    offset?: number
-  }) => {
-    try {
-      loading.value = true
-      error.value = null
-      
-      // If no limit specified, fetch all data using pagination
-      if (!params?.limit) {
-        const allRecords: any[] = []
-        let offset = 0
-        const limit = 1000 // Maximum allowed by backend
-        
-        while (true) {
-          const response = await deviceApi.getDeviceSavings(deviceId, {
-            ...params,
-            limit,
-            offset
-          })
-          
-          const records = response.data.records
-          allRecords.push(...records)
-          
-          // If we got fewer records than the limit, we've reached the end
-          if (records.length < limit) {
-            break
-          }
-          
-          offset += limit
-        }
-        
-        deviceSavings.value = allRecords
-      } else {
-        // Use the provided limit (for backward compatibility)
-        const response = await deviceApi.getDeviceSavings(deviceId, params)
-        deviceSavings.value = response.data.records
-      }
-    } catch (err) {
-      error.value = 'Failed to fetch device savings'
-      console.error('Error fetching device savings:', err)
-    } finally {
-      loading.value = false
-    }
-  }
 
-  const fetchDeviceSummary = async (deviceId: number, params?: {
-    startDate?: string
-    endDate?: string
-  }) => {
-    try {
-      error.value = null
-      const response = await deviceApi.getDeviceSummary(deviceId, params)
-      deviceSummary.value = response.data.summary
-    } catch (err) {
-      error.value = 'Failed to fetch device summary'
-      console.error('Error fetching device summary:', err)
-    }
-  }
+
+
 
   const selectDevice = async (deviceId: number) => {
     selectedDeviceId.value = deviceId
@@ -188,7 +128,6 @@ export const useDeviceStore = defineStore('device', () => {
     // State
     devices,
     selectedDeviceId,
-    deviceSavings,
     deviceSummary,
     dateRange,
     loading,
@@ -205,9 +144,7 @@ export const useDeviceStore = defineStore('device', () => {
 
     // Actions
     fetchDevices,
-    fetchDeviceSavings,
     fetchDeviceMonthlyData,
-    fetchDeviceSummary,
     selectDevice,
     updateDateRange,
     clearError

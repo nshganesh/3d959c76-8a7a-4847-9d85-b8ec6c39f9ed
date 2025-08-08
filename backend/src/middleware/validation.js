@@ -74,45 +74,6 @@ const validateDateRange = (req, res, next) => {
 };
 
 /**
- * Validate pagination parameters
- */
-const validatePagination = (req, res, next) => {
-  const { limit, offset } = req.query;
-
-  // Validate limit if provided
-  if (limit) {
-    const limitInt = parseInt(limit);
-    if (isNaN(limitInt) || limitInt <= 0 || limitInt > 1000) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid limit',
-        message: 'Limit must be a positive integer between 1 and 1000'
-      });
-    }
-    req.limit = limitInt;
-  } else {
-    req.limit = 100; // Default limit
-  }
-
-  // Validate offset if provided
-  if (offset) {
-    const offsetInt = parseInt(offset);
-    if (isNaN(offsetInt) || offsetInt < 0) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid offset',
-        message: 'Offset must be a non-negative integer'
-      });
-    }
-    req.offset = offsetInt;
-  } else {
-    req.offset = 0; // Default offset
-  }
-
-  next();
-};
-
-/**
  * Global error handler middleware
  */
 const errorHandler = (err, req, res, next) => {
@@ -157,7 +118,6 @@ const notFoundHandler = (req, res) => {
 module.exports = {
   validateDeviceId,
   validateDateRange,
-  validatePagination,
   errorHandler,
   notFoundHandler
 }; 

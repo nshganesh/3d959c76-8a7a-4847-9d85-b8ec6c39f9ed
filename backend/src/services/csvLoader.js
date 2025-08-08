@@ -121,16 +121,6 @@ class CSVLoader {
   }
 
   /**
-   * Get all device savings data
-   */
-  getDeviceSavingsData() {
-    if (!this.isLoaded) {
-      throw new Error('Data not loaded yet. Call loadAllData() first.');
-    }
-    return this.deviceSavingsData;
-  }
-
-  /**
    * Get all devices data
    */
   getDevicesData() {

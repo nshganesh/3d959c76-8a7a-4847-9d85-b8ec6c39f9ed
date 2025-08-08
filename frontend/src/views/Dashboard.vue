@@ -50,9 +50,8 @@
                   v-model="selectedDeviceId"
                   @change="selectDevice(selectedDeviceId)"
                   class="select"
-                  :disabled="loading"
                 >
-                  <option v-if="loading" value="" disabled>Loading devices...</option>
+                  <option v-if="loading" value="Loading devices..." disabled>Loading devices...</option>
                   <option
                     v-else
                     v-for="device in devices"
@@ -146,7 +145,7 @@
                   />
                 </div>
               </div>
-              <div class="flex gap-2">
+              <div class="flex gap-2 m-4">
                 <button 
                   @click="setQuickDateRange('2023-01-01', '2023-03-31')"
                   class="btn btn-outline"

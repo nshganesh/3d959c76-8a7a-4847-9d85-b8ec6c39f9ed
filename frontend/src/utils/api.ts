@@ -43,20 +43,6 @@ export const deviceApi = {
     return response.data
   },
 
-  // Get device savings with optional date range and pagination
-  async getDeviceSavings(
-    deviceId: number,
-    params?: {
-      startDate?: string
-      endDate?: string
-      limit?: number
-      offset?: number
-    }
-  ): Promise<DeviceSavingsResponse> {
-    const response = await api.get(`/devices/${deviceId}/savings`, { params })
-    return response.data
-  },
-
   // Get aggregated monthly data for charts
   async getDeviceMonthlyData(
     deviceId: number,
